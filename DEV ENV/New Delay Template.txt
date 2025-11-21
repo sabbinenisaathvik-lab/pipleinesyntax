@@ -1,0 +1,14 @@
+INPUT_TYPE={{inputFormat}}
+OUTPUT_TYPE={{outputFormat}}
+
+# Validate inputs
+if [ -z "$INPUT_TYPE" ] || [ -z "$OUTPUT_TYPE" ]; then
+    echo "Usage: $0 <sdi|srt> <srt|multicast>"
+    exit 1
+fi
+
+if [[ "$INPUT_TYPE" == "sdi" && ( "$OUTPUT_TYPE" == "srt" || "$OUTPUT_TYPE" == "multicast" ) ]]; then
+    /opt/delayDecklink --input-device {{{input_type}}} --mode 1080p5994 --basename {{{file_path}}} --socket-port {{{socket_port}}} --delay {{{delay_duration}}} --image-url "{{{image_url}}}" --seek-seconds 5 --output-type {{outputFormat}} --multicast-port {{{port}}} --bitrate {{{bitrate}}}
+elif [ "$INPUT_TYPE" == "sdi" ] && [ "$OUTPUT_TYPE" == "sdi" ]; then
+     /opt/delayDecklink --input-device {{{input_type}}} --mode 1080p5994 --basename {{{file_path}}} --socket-port {{{socket_port}}} --output-device {{{output_sdi}}} --delay {{{delay_duration}}} --image-url "{{{image_url}}}" --seek-seconds 5 --output-type {{outputFormat}} --bitrate {{{bitrate}}}
+fi

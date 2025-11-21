@@ -1,0 +1,24 @@
+INPUT_TYPE={{inputFormat}}
+OUTPUT_TYPE={{outputFormat}}
+
+sudo rm {{logpath}}
+
+# Validate inputs
+if [ -z "$INPUT_TYPE" ] || [ -z "$OUTPUT_TYPE" ]; then
+    echo "Usage: $0 <sdi|srt> <srt|multicast>"
+    exit 1
+fi
+
+if [ "$INPUT_TYPE" == "srt" ]; then
+    GST_DEBUG_COLOR_MODE=off GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=pipeline)" GST_DEBUG_FILE={{logpath}}  /opt/ixgdecoder --i {{inputFormat}} --isrtip {{{srt_ip}}} --isrtport {{srt_port}} --isrtmode {{srt_mode}} --isrtlatency {{latency}} --interlacemode {{interlacemode}} --topfieldfirst {{topfieldfirst}} --fieldpattern {{fieldpattern}} --o {{outputFormat}} --osdidevice {{dev_no}} --osdimode {{video_mode}} --osdilevel {{level}} --logpath {{logpath}}
+
+elif [ "$INPUT_TYPE" == "multicast" ]; then
+   GST_DEBUG_COLOR_MODE=off GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=pipeline)" GST_DEBUG_FILE={{logpath}}  /opt/ixgdecoder --i {{inputFormat}} --imulticastip {{{srt_ip}}} --imulticastport {{srt_port}} --imulticasttargetdev {{target_dev}} --interlacemode {{interlacemode}} --topfieldfirst {{topfieldfirst}} --fieldpattern {{fieldpattern}} --o {{outputFormat}} --osdidevice {{dev_no}} --osdimode {{video_mode}} --osdilevel {{level}} --logpath {{logpath}}
+
+elif [ "$INPUT_TYPE" == "sdi" ]; then
+   GST_DEBUG_COLOR_MODE=off GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=pipeline)" GST_DEBUG_FILE={{logpath}}  /opt/ixgdecoder --i {{inputFormat}} --isdidevice {{{in_dev_no}}} --isdimode {{dev_mode}} --interlacemode {{interlacemode}} --topfieldfirst {{topfieldfirst}} --fieldpattern {{fieldpattern}} --o {{outputFormat}} --osdidevice {{dev_no}} --osdimode {{video_mode}} --osdilevel {{level}} --logpath {{logpath}}
+
+else
+    echo "Invalid input or output type. Use 'sdi' for input and either 'srt' or 'multicast' for output."
+    exit 1
+fi
