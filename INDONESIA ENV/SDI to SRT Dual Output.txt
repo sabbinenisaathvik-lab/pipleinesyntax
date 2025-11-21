@@ -1,0 +1,11 @@
+IS_TEE={{is_tee}}
+
+if [ "$IS_TEE" == true  ]; then
+    echo "Starting SDI to SRT stream with tee..."
+  gst-launch-1.0 decklinkvideosrc mode={{mode}} device-number={{device_number}} connection=sdi ! video/x-raw,format=UYVY ! queue max-size-time=0 max-size-bytes=0 ! videoconvert !  deinterlace ! videoconvert ! video/x-raw ! nvh264enc zerolatency=true gop-size={{gop}} bframes=2 nonref-p=false rc-lookahead=5 rc-mode={{rcmode}} preset=5 vbv-buffer-size=1024 bitrate={{bitrate}} max-bitrate={{max_bitrate}} ! video/x-h264,format=I420,profile=high !  h264parse config-interval=-1 ! mpegtsmux alignment=7 name=mux  decklinkaudiosrc device-number={{device_number}} ! audio/x-raw,format=S16LE ! queue max-size-time=0 max-size-bytes=0 ! audioconvert ! audioresample ! voaacenc bitrate={{audio_bitrate}} ! aacparse ! mux. mux. ! queue !  tee name=muxtee ! queue ! srtsink uri=srt://{{ip}}:{{port}}?mode={{srt_mode}} wait-for-connection=false sync={{sync}} muxtee. ! queue ! srtsink uri=srt://{{ip_2}}:{{port_2}}?mode={{srt_mode_2}} wait-for-connection=false sync={{sync}}
+
+else
+	echo "Starting SDI to SRT stream..."
+    gst-launch-1.0 decklinkvideosrc mode={{mode}} device-number={{device_number}} connection=sdi ! video/x-raw,format=UYVY ! queue max-size-time=0 max-size-bytes=0 ! videoconvert !  video/x-raw ! nvh264enc zerolatency=true gop-size={{gop}} bframes=2 nonref-p=false rc-lookahead=5 rc-mode={{rcmode}} preset=5 vbv-buffer-size=1024 bitrate={{bitrate}} max-bitrate={{max_bitrate}} ! video/x-h264,format=I420,profile=high !  h264parse config-interval=-1 ! mpegtsmux alignment=7 name=mux  decklinkaudiosrc device-number={{device_number}} ! audio/x-raw,format=S16LE ! queue max-size-time=0 max-size-bytes=0 ! audioconvert ! audioresample ! voaacenc bitrate={{audio_bitrate}} ! aacparse ! mux. mux. ! queue !  tee name=muxtee ! srtsink uri=srt://{{ip}}:{{port}}?mode={{srt_mode}} wait-for-connection=false sync={{sync}}
+
+fi

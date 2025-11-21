@@ -1,0 +1,18 @@
+IS_TEE={{is_tee}}
+VIDEO_MODE={{mode}}
+case "$VIDEO_MODE" in
+    1080i5994|1080i60|1080i50)
+        interlace=" videoconvert ! interlace field-pattern=1:1 "
+        ;;
+    *)
+        interlace=" queue "
+        ;;
+esac
+
+if [ "$IS_TEE" == true  ]; then
+    echo "Starting SRT to SDI stream with tee..."
+  gst-launch-1.0 srtsrc uri="srt://{{srt_ip}}:{{srt_port}}?mode={{in_srt_mode}}"  latency={{latency}} do-timestamp={{do_timestamp}} ! queue ! tee name=t ! queue ! tsdemux name=demux ! queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 ! h264parse ! nvh264dec ! "video/x-raw" ! $interlace ! videoconvert ! "video/x-raw,format=UYVY" ! decklinkvideosink device-number={{device_number}} mode={{mode}} mapping-format={{mapping_format}} sync={{sync}} demux. ! queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 ! aacparse ! fdkaacdec ! audioconvert ! "audio/x-raw,format=S16LE" ! decklinkaudiosink device-number={{device_number}}  sync={{sync}} t. ! queue  leaky=downstream max-size-buffers=30 ! srtsink uri=srt://{{{monitor_ip}}}:{{monitor_port}}?mode={{srt_mode}} wait-for-connection={{Wait_for_connection}} sync={{sync}}
+else
+	echo "Starting SRT to SDI stream..."
+    gst-launch-1.0 srtsrc uri="srt://{{srt_ip}}:{{srt_port}}?mode={{in_srt_mode}}"  latency={{latency}} do-timestamp=false ! tsdemux name=demux ! queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 ! h264parse ! nvh264dec ! "video/x-raw,width=1920,height=1080" ! $interlace ! videoconvert ! "video/x-raw,format=UYVY" ! decklinkvideosink device-number={{device_number}} mode={{mode}} mapping-format={{mapping_format}} sync={{sync}} demux. ! queue max-size-buffers=0 max-size-time=0 max-size-bytes=0 ! aacparse ! fdkaacdec ! audioconvert ! "audio/x-raw,format=S16LE" ! decklinkaudiosink device-number={{device_number}}  sync={{sync}}
+fi
