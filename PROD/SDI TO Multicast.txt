@@ -1,0 +1,31 @@
+-loglevel verbose \
+-hwaccel cuda \
+-threads:v 4 \
+-format_code Hp59 \
+-f decklink -re -rtbufsize 100M -i "DeckLink Duo ({{Decklink_dev_no}})" \
+-map 0 \
+-c:v h264_nvenc \
+-preset medium \
+-profile:v high \
+-level:v 4.2 \
+-rc:v {{bitrate_control_rate}} \
+-b:v {{bitrate}}M \
+-minrate:v {{min_bitrate}}M \
+-maxrate:v {{max_bitrate}}M \
+-bufsize:v {{buff_size}}M \
+-qscale 1 \
+-crf 18 \
+-qp:v 19 \
+-coder cabac \
+-b_adapt 1 \
+-no-scenecut 0 \
+-bf:v 2 \
+-force_key_frames "expr:gte(t,n_forced*2)" \
+-r:v 60000/1000 \
+-c:a aac -ac 2 -ar 48000 -b:a 192k \
+-async 0 \
+-flags +global_header+cgop \
+-pix_fmt yuv420p \
+-strict experimental \
+-f mpegts -bsf:v h264_mp4toannexb \
+"udp://226.1.1.1:{{port}}?pkt_size=1316&localaddr={{local_addr}}"

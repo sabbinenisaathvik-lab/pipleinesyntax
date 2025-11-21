@@ -1,0 +1,1 @@
+-i "udp://226.1.1.1:{{port}}?overrun_nonfatal=1&fifo_size=10000000&localaddr=127.0.0.1" -vcodec copy -acodec aac -af "volume=5dB" -bsf:v h264_mp4toannexb -f flv "rtmp://a.rtmp.youtube.com/live2/{{RTMP_Key}}"
