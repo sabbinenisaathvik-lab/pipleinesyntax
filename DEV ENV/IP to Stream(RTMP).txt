@@ -1,0 +1,32 @@
+INPUT_TYPE={{inputFormat}}
+OUTPUT_TYPE={{outputFormat}}
+
+sudo rm {{logpath}}
+
+# Validate inputs
+if [ -z "$INPUT_TYPE" ] || [ -z "$OUTPUT_TYPE" ]; then
+    echo "Usage: $0 <sdi|srt> <srt|multicast>"
+    exit 1
+fi
+
+if [ "$INPUT_TYPE" == "srt" ] && [ "$OUTPUT_TYPE" == "rtmp" ]; then
+    echo "Starting SDI to SRT stream..."
+    GST_DEBUG_COLOR_MODE=off \
+    GST_DEBUG=GST_TRACER:7 \
+    GST_TRACERS="latency(flags=pipeline)" \
+    GST_DEBUG_FILE={{{logpath}}} \
+    /opt/ixgstreamcopy --i {{inputFormat}} --isrtip {{{input_ip}}} --isrtport {{input_port}} --isrtmode {{input_mode}} --isrtlatency {{input_srt_latency}} \
+    --o rtmp --ortmpurl "{{{rtmpurl}}}"  --logpath {{logpath}}
+
+elif [ "$INPUT_TYPE" == "multicast" ] && [ "$OUTPUT_TYPE" == "rtmp" ]; then
+    echo "Starting SDI to Multicast stream..."
+    GST_DEBUG_COLOR_MODE=off \
+    GST_DEBUG=GST_TRACER:7 \
+    GST_TRACERS="latency(flags=pipeline)" \
+    GST_DEBUG_FILE={{{logpath}}} \
+   /opt/ixgstreamcopy --i {{inputFormat}} --imulticastip {{input_ip}} --imulticastport {{input_port}} --imulticasttargetdev {{{input_network_dev}}} \
+   --o rtmp --ortmpurl "{{{rtmpurl}}}"  --logpath {{logpath}}
+else
+    echo "Invalid input or output type. Use 'sdi' for input and either 'srt' or 'multicast' for output."
+    exit 1
+fi
