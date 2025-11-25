@@ -1,0 +1,41 @@
+INPUT_TYPE={{inputFormat}}
+OUTPUT_TYPE={{outputFormat}}
+
+sudo rm {{logpath}}
+
+# Validate inputs
+if [ -z "$INPUT_TYPE" ] || [ -z "$OUTPUT_TYPE" ]; then
+    echo "Usage: $0 <sdi|srt> <srt|multicast>"
+    exit 1
+fi
+
+IS_DUAL_MODE={{isdualmode}}
+if [ "$IS_DUAL_MODE" == true ]; then
+	dualoutput=" --isdualmode 1 --odualsrtip {{dualsrtip}} --odualsrtport {{dualsrtport}} --odualsrtmode {{dualsrtmode}} "
+else
+	dualoutput=""
+fi
+
+IS_INTERLACE={{interlacemode}}
+if [ "$IS_INTERLACE" == "interleaved"]; then
+	interlaced=" --topfieldfirst {{topfieldfirst}} --fieldpattern {{fieldpattern}} "
+else
+	interlaced=""
+fi
+
+
+
+if [ "$INPUT_TYPE" == "srt" ] && [ "$OUTPUT_TYPE" == "sdi" ]; then
+    GST_DEBUG_COLOR_MODE=off GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=pipeline)" GST_DEBUG_FILE={{logpath}}  /opt/ixgdualoutput --i {{inputFormat}} --isrtip {{{srt_ip}}} --isrtport {{srt_port}} --isrtmode {{srt_mode}} --isrtlatency {{latency}} --interlacemode {{interlacemode}} $interlaced --o {{outputFormat}} --osdidevice {{dev_no}} --osdimode {{video_mode}} --osdilevel {{level}} $dualoutput --logpath {{logpath}}
+
+elif [ "$INPUT_TYPE" == "multicast" ] && [ "$OUTPUT_TYPE" == "sdi" ]; then
+   GST_DEBUG_COLOR_MODE=off GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=pipeline)" GST_DEBUG_FILE={{logpath}}  /opt/ixgdualoutput --i {{inputFormat}} --imulticastip {{{srt_ip}}} --imulticastport {{srt_port}} --imulticasttargetdev {{target_dev}}  --interlacemode {{interlacemode}}  $interlaced --o {{outputFormat}} --osdidevice {{dev_no}} --osdimode {{video_mode}} --osdilevel {{level}} $dualoutput --logpath {{logpath}}
+
+elif [ "$INPUT_TYPE" == "sdi" ] && [ "$OUTPUT_TYPE" == "sdi" ]; then
+   GST_DEBUG_COLOR_MODE=off GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=pipeline)" GST_DEBUG_FILE={{logpath}}  /opt/ixgdualoutput --i {{inputFormat}} --isdidevice {{{in_dev_no}}} --isdimode {{in_dev_mode}} --interlacemode {{interlacemode}}  $interlaced --o {{outputFormat}} --osdidevice {{dev_no}} --osdimode {{video_mode}} --osdilevel {{level}} $dualoutput --logpath {{logpath}}
+elif  [ "$INPUT_TYPE" == "sdi" ] && [ "$OUTPUT_TYPE" == "srt" ]; then
+	GST_DEBUG_COLOR_MODE=off GST_DEBUG="GST_TRACER:7" GST_TRACERS="latency(flags=pipeline)" GST_DEBUG_FILE={{logpath}}  /opt/ixgdualoutput --i {{inputFormat}} --isdidevice {{in_dev_no}} --isdimode {{in_dev_mode}} --isdibuffsize {{sdibuffersize}} --vcodec {{videocodec}} --rcmode {{rcmode}} --vbitrate {{bitrate}} --vmaxbitrate {{max_bitrate}} --gopsize {{gopsize}} --preset medium --zerolatency {{zerolatency }} --rclookahead {{rclookahead }}  --videobuffersize {{vbvsize}} --acodec {{audiocodec}} --abitrate {{audiobitrate}} --samplerate {{samplerate}} --o {{outputFormat}} --osrtip {{osrtip}} --osrtport {{osrtport}} --osrtmode {{osrtmode}} --osrtlatency {{osrtlatency}} --sync {{sync}} $dualoutput --logpath {{logpath}}
+else
+    echo "Invalid input or output type. Use 'sdi' for input and either 'srt' or 'multicast' for output."
+    exit 1
+fi
